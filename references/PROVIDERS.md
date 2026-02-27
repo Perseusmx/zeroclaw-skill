@@ -70,7 +70,7 @@ For fallback chains (`reliability.fallback_providers`), each fallback provider r
 
 ```bash
 # Set provider key
-export OPENROUTER_API_KEY="your-key-here"
+export OPENROUTER_API_KEY="..."
 
 # Set default provider
 zeroclaw onboard --provider openrouter
@@ -81,7 +81,7 @@ zeroclaw onboard --provider openrouter
 ```toml
 # ~/.zeroclaw/config.toml
 default_provider = "openrouter"
-api_key = "your-key-here"
+# api_key resolved from $OPENROUTER_API_KEY or $ZEROCLAW_API_KEY env var (recommended)
 default_model = "anthropic/claude-sonnet-4.5"
 ```
 
@@ -91,7 +91,7 @@ default_model = "anthropic/claude-sonnet-4.5"
 
 ```toml
 default_provider = "custom:https://your-api.example.com"
-api_key = "your-api-key"
+# api_key resolved from env var (see Credential Resolution Order above)
 default_model = "your-model-id"
 ```
 
@@ -99,7 +99,7 @@ default_model = "your-model-id"
 
 ```toml
 default_provider = "anthropic-custom:https://your-api.example.com"
-api_key = "your-api-key"
+# api_key resolved from env var (see Credential Resolution Order above)
 default_model = "your-model-id"
 ```
 
@@ -153,7 +153,7 @@ reasoning_enabled = false
 **OAuth setup:**
 ```toml
 default_provider = "minimax-oauth"
-api_key = "minimax-oauth"
+# api_key resolved from $MINIMAX_OAUTH_TOKEN or $MINIMAX_API_KEY env var
 ```
 
 Environment variables:
@@ -170,7 +170,7 @@ Optional:
 **OAuth setup:**
 ```toml
 default_provider = "qwen-code"
-api_key = "qwen-oauth"
+# api_key resolved from $QWEN_OAUTH_TOKEN env var or ~/.qwen/oauth_creds.json
 ```
 
 Credential resolution:
@@ -285,7 +285,7 @@ Optional per-route key:
 hint = "semantic"
 provider = "openai"
 model = "text-embedding-3-small"
-api_key = "sk-route-specific"
+# api_key from env var or set here (encrypted at rest)
 ```
 
 ## Upgrading Models Safely

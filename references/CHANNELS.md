@@ -102,7 +102,7 @@ zeroclaw onboard
 **Manual config:**
 ```toml
 [channels_config.discord]
-bot_token = "your-discord-bot-token"
+bot_token = "..."  # from Discord Developer Portal
 guild_id = "123456789012345678"   # Optional: specific server
 allowed_users = ["*"]                   # User IDs
 listen_to_bots = false
@@ -149,10 +149,10 @@ ZeroClaw supports two backends:
 **Config:**
 ```toml
 [channels_config.whatsapp]
-access_token = "your-access-token"
-phone_number_id = "123456789012345"
-verify_token = "your-verify-token"
-app_secret = "your-app-secret"          # Recommended
+access_token = "..."   # from Meta Business Suite
+phone_number_id = "..."
+verify_token = "..."   # your chosen verification string
+app_secret = "..."     # recommended for webhook signature verification
 allowed_numbers = ["*"]
 ```
 
@@ -226,7 +226,7 @@ verify_tls = true
 ```toml
 [channels_config.webhook]
 port = 8080
-secret = "your-shared-secret"
+secret = "..."  # shared HMAC secret
 ```
 
 **Usage:**
@@ -234,7 +234,7 @@ secret = "your-shared-secret"
 # Send message
 curl -X POST http://localhost:8080/webhook \
   -H "Content-Type: application/json" \
-  -H "X-Webhook-Secret: your-shared-secret" \
+  -H "X-Webhook-Secret: $WEBHOOK_SECRET" \
   -d '{"message": "Hello, ZeroClaw!"}'
 ```
 
@@ -249,8 +249,8 @@ zeroclaw onboard
 **Config:**
 ```toml
 [channels_config.dingtalk]
-client_id = "your-app-key"
-client_secret = "your-app-secret"
+client_id = "..."      # from DingTalk open platform
+client_secret = "..."  # from DingTalk open platform
 allowed_users = ["*"]
 ```
 
