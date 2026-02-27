@@ -8,7 +8,7 @@ ZeroClaw uses `~/.zeroclaw/config.toml` for all configuration settings. This doc
 zeroclaw onboard --interactive
 
 # Quick setup with API key
-zeroclaw onboard --api-key "your-key" --provider openrouter
+ZEROCLAW_API_KEY="..." zeroclaw onboard --provider openrouter
 
 # View current config
 zeroclaw config get
@@ -24,7 +24,7 @@ zeroclaw config set <key> <value>
 ### Provider Configuration
 
 ```toml
-api_key = "sk-your-api-key-here"
+# api_key resolved from $ZEROCLAW_API_KEY env var (recommended) or set here (encrypted at rest)
 default_provider = "openrouter"
 default_model = "anthropic/claude-sonnet-4.5"
 default_temperature = 0.7
@@ -313,17 +313,17 @@ endpoint = "https://your-server/heartbeat"
 provider = "none"                # "none", "cloudflare", "tailscale", "ngrok", "custom"
 
 [tunnel.cloudflare]
-account_id = "your-account-id"
-api_token = "your-api-token"
+account_id = "..."     # from Cloudflare dashboard
+api_token = "..."      # from Cloudflare API tokens
 tunnel_name = "zeroclaw"
 
 [tunnel.tailscale]
-auth_key = "your-auth-key"
+auth_key = "..."       # from Tailscale admin console
 tunnel_name = "zeroclaw"
 
 [tunnel.ngrok]
-authtoken = "your-ngrok-token"
-domain = "your-domain.ngrok-free.app"
+authtoken = "..."      # from ngrok dashboard
+domain = "..."         # your ngrok domain
 
 [tunnel.custom]
 url = "https://your-custom-tunnel.com"
@@ -429,7 +429,7 @@ hint = "archive"
 provider = "custom:https://embed.example.com/v1"
 model = "your-embedding-model-id"
 dimensions = 1024
-api_key = "your-embedding-key"
+# api_key from env var or set here (encrypted at rest)
 ```
 
 ---

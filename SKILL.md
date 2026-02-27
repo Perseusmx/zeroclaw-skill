@@ -1,7 +1,7 @@
 ---
 name: zeroclaw
 description: Configure and operate ZeroClaw autonomous AI infrastructure. Use when user mentions zeroclaw CLI, needs to setup/configure zeroclaw, asks about 'zeroclaw providers', 'zeroclaw channels', 'autonomous AI agent', or wants to run LLMs on low-cost hardware (Raspberry Pi, ESP32, Arduino).
-license: Apache-2.0 AND MIT
+license: MIT
 ---
 
 # ZeroClaw Quick Reference
@@ -26,20 +26,12 @@ ZeroClaw is a fast, small (<5MB RAM), fully autonomous AI assistant infrastructu
 # Homebrew (macOS/Linux)
 brew install zeroclaw
 
-# Linux pre-built binary
-curl -fsSL https://raw.githubusercontent.com/zeroclaw-labs/zeroclaw/main/scripts/install-release.sh | bash
-
-# Clone + bootstrap
+# Clone + bootstrap (recommended — inspect before running)
 git clone https://github.com/zeroclaw-labs/zeroclaw.git
 cd zeroclaw && ./bootstrap.sh
 
 # Bootstrap options: --prefer-prebuilt, --prebuilt-only, --docker, --onboard
 ```
-
-<security-warning>
-**⚠️ SECURITY**: Scripts that download and execute code from the internet should be reviewed first.
-For production: clone the repo, review scripts manually, pin to a specific commit.
-</security-warning>
 
 ## Update
 
@@ -53,7 +45,7 @@ zeroclaw --version
 ## Onboarding
 
 ```bash
-zeroclaw onboard --api-key "your-api-key" --provider openrouter
+ZEROCLAW_API_KEY="..." zeroclaw onboard --provider openrouter
 zeroclaw onboard --interactive    # Full wizard
 zeroclaw onboard --channels-only  # Reconfigure channels only
 ```
@@ -118,7 +110,7 @@ ZeroClaw supports 10+ built-in providers plus custom endpoints.
 ```toml
 # ~/.zeroclaw/config.toml
 default_provider = "custom:https://your-api.example.com"
-api_key = "your-api-key"
+# api_key resolved from $ZEROCLAW_API_KEY env var (recommended) or set here
 default_model = "your-model"
 ```
 
@@ -164,7 +156,7 @@ ZeroClaw uses `~/.zeroclaw/config.toml` for all settings.
 
 ```toml
 default_provider = "openrouter"
-api_key = "your-key-here"
+# api_key resolved from $ZEROCLAW_API_KEY env var (recommended) or set here (encrypted at rest)
 default_model = "anthropic/claude-sonnet-4.5"
 default_temperature = 0.7
 ```
