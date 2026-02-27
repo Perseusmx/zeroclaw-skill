@@ -30,4 +30,4 @@ For complete documentation, see the [ZeroClaw project](https://github.com/zerocl
 
 ## License
 
-Apache-2.0 AND MIT
+MIT
