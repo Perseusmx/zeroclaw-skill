@@ -57,6 +57,7 @@ For fallback chains (`reliability.fallback_providers`), each fallback provider r
 | `perplexity` | — | No | `PERPLEXITY_API_KEY` |
 | `cohere` | — | No | `COHERE_API_KEY` |
 | `copilot` | `github-copilot` | No | (use config/`API_KEY` fallback with GitHub token) |
+| `cursor` | — | No | (Cursor IDE integration) |
 | `lmstudio` | `lm-studio` | Yes | (optional; local by default) |
 | `llamacpp` | `llama.cpp` | Yes | `LLAMACPP_API_KEY` (optional) |
 | `sglang` | — | Yes | `SGLANG_API_KEY` (optional) |

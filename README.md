@@ -17,7 +17,7 @@ git clone https://github.com/Perseusmx/zeroclaw-skill.git
 ## What's Included
 
 - Installation, onboarding, and essential CLI commands
-- 10+ built-in AI providers plus custom endpoint support
+- 30+ built-in AI providers plus custom endpoint support
 - 16+ communication channels (Telegram, Discord, Slack, WhatsApp, Signal, Matrix, iMessage, and more)
 - Complete configuration reference
 - Security best practices and deployment checklists
