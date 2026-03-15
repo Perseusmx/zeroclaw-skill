@@ -13,13 +13,17 @@ zeroclaw config get gateway
 
 ## Security Model
 
-ZeroClaw implements **security-by-default** across five layers:
+ZeroClaw implements **defense-in-depth** across seven enforcement layers:
 
-1. **Autonomy** - Filesystem, shell, and network access controls
-2. **Authentication** - Provider credentials, channel tokens, gateway pairing
-3. **Access control** - Channel allowlists, gateway pairing, tunnel restrictions
-4. **Runtime** - Docker isolation, sandbox (Landlock, Firejail), resource limits
-5. **Secrets** - Argon2id encryption at rest, key derivation
+1. **Autonomy level gating** - Initial scope check (supervised/assisted/full)
+2. **Emergency stop (E-Stop)** - Multi-granularity shutdown state machine (`kill_all`, `network_kill`, `domain_block`, `tool_freeze`)
+3. **OTP validation** - Time-based one-time codes for sensitive operations
+4. **Command allowlisting** - Explicit permit/deny with risk classification (high/medium/low)
+5. **Path workspace scoping** - Canonicalized path validation with symlink detection
+6. **Rate limiting** - Action throttling via ActionTracker per configured time window
+7. **Domain validation** - Browser navigation and HTTP request restrictions
+
+**Encryption:** ChaCha20-Poly1305 AEAD for secrets at rest, with Argon2id key derivation.
 
 <security-warning>
 **⚠️ CRITICAL**: ZeroClaw gives an autonomous AI powerful capabilities. Always verify security settings before running in production.
@@ -30,7 +34,7 @@ ZeroClaw implements **security-by-default** across five layers:
 ## Pre-Deployment Checklist
 
 ### Autonomy and Access
-- [ ] Autonomy level is `supervised` or `readonly` (not `full`)
+- [ ] Autonomy level is `supervised` or `assisted` (not `full`)
 - [ ] `workspace_only = true` unless explicitly needed
 - [ ] `allowed_commands` explicitly lists safe commands
 - [ ] `blocked_commands` includes `rm -rf`, `dd`, `mkfs`, `fdisk`, `cryptsetup`
@@ -76,6 +80,7 @@ Auth profiles stored in `~/.zeroclaw/auth-profiles.json` (encrypted with `~/.zer
 
 ### Autonomy
 - Setting `level = "full"` in untrusted environments
+- Using `assisted` when `supervised` is appropriate for production
 - Disabling `workspace_only` without need
 - Allowing all commands without explicit allowlist
 - Omitting cost limits in production
@@ -193,7 +198,7 @@ enabled = false
 
 ```toml
 [autonomy]
-level = "readonly"
+level = "supervised"
 workspace_only = true
 max_actions_per_hour = 10
 

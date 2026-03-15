@@ -31,6 +31,9 @@ git clone https://github.com/zeroclaw-labs/zeroclaw.git
 cd zeroclaw && ./bootstrap.sh
 
 # Bootstrap options: --prefer-prebuilt, --prebuilt-only, --docker, --onboard
+
+# Cargo (requires Rust toolchain)
+cargo install zeroclaw
 ```
 
 ## Update
@@ -81,7 +84,9 @@ zeroclaw onboard --channels-only  # Reconfigure channels only
 ## Service
 
 - `zeroclaw service install` - Install as system service
+- `zeroclaw service uninstall` - Remove system service
 - `zeroclaw service start/stop/restart` - Control service
+- `zeroclaw service status` - Check service status
 
 ## Other
 
@@ -93,7 +98,7 @@ zeroclaw onboard --channels-only  # Reconfigure channels only
 
 # Providers Overview
 
-ZeroClaw supports 10+ built-in providers plus custom endpoints.
+ZeroClaw supports 30+ built-in providers plus custom endpoints.
 
 **Built-in providers:**
 - `openrouter` - OpenRouter (default, multi-provider aggregation)
@@ -165,8 +170,8 @@ default_temperature = 0.7
 
 | Level | Description |
 |---|---|
-| `readonly` | Can read files only, no modifications |
-| `supervised` | Requires approval for file writes, shell commands, network requests |
+| `supervised` | Maximum restriction; requires explicit approval for all actions |
+| `assisted` | Moderate oversight with command allowlisting |
 | `full` | No approval required (use only on trusted machines) |
 
 ```toml
@@ -181,6 +186,12 @@ max_cost_per_day_cents = 500
 <security-warning>
 **⚠️ HIGH RISK**: Setting `level = "full"` removes all guardrails. Only use on trusted, personal machines. The AI can execute any command without approval.
 </security-warning>
+
+**Emergency Stop (E-Stop):** ZeroClaw includes a multi-granularity shutdown system:
+- `kill_all` - Terminate entire agent runtime
+- `network_kill` - Block all external API calls
+- `domain_block` - Restrict browser navigation
+- `tool_freeze` - Prevent tool execution while preserving state
 
 **Common security settings:**
 

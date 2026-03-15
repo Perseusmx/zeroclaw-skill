@@ -19,6 +19,11 @@ zeroclaw config set <key> <value>
 
 **Config location:** `~/.zeroclaw/config.toml`
 
+**Config resolution order:**
+1. `ZEROCLAW_WORKSPACE` environment variable
+2. `active_workspace.toml` marker file
+3. Default `~/.zeroclaw/config.toml`
+
 ## Core Settings
 
 ### Provider Configuration
@@ -107,7 +112,7 @@ trust_forwarded_headers = false    # Trust X-Forwarded-* headers
 
 ```toml
 [autonomy]
-level = "supervised"            # "readonly", "supervised", "full"
+level = "supervised"            # "supervised", "assisted", "full"
 workspace_only = true
 allowed_commands = ["git", "npm", "cargo", "ls", "cat", "grep"]
 max_actions_per_hour = 20
@@ -118,8 +123,8 @@ max_cost_per_day_cents = 500
 
 | Level | Filesystem | Shell | Approval Required | Use Case |
 |---|---|---|---|---|
-| `readonly` | Read-only | None | N/A | Safe exploration, code review |
-| `supervised` | Read/Write | Allowed | Yes | Daily use, balance security/usability |
+| `supervised` | Restricted | Allowlisted only | Yes, all actions | Maximum security, production |
+| `assisted` | Read/Write | Allowlisted | Risky actions only | Daily use, balance security/usability |
 | `full` | Full access | Unrestricted | No | Trusted personal machines only |
 
 <security-warning>
@@ -384,6 +389,22 @@ max_files = 5
 
 ---
 
+## Observability & Tracing
+
+```toml
+[observability]
+tracing_enabled = true
+trace_file = "~/.zeroclaw/logs/runtime_trace.jsonl"
+opentelemetry_endpoint = ""      # Optional: OpenTelemetry collector URL
+```
+
+**Settings:**
+- `tracing_enabled` - Enable runtime event tracing
+- `trace_file` - Path for JSONL trace output (all tool executions, actions)
+- `opentelemetry_endpoint` - Optional collector for distributed tracing
+
+---
+
 ## Model Routing
 
 ```toml
@@ -498,7 +519,7 @@ zeroclaw config get <key>
 
 Before deploying to production, verify:
 
-- [ ] Autonomy level is `supervised` or `readonly`
+- [ ] Autonomy level is `supervised` or `assisted`
 - [ ] `workspace_only = true` unless explicitly needed
 - [ ] `secrets.encrypt = true` (default)
 - [ ] Cost limits configured
