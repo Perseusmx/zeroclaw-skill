@@ -20,9 +20,10 @@ zeroclaw config set <key> <value>
 **Config location:** `~/.zeroclaw/config.toml`
 
 **Config resolution order:**
-1. `ZEROCLAW_WORKSPACE` environment variable
-2. `active_workspace.toml` marker file
-3. Default `~/.zeroclaw/config.toml`
+1. `ZEROCLAW_CONFIG_DIR` environment variable
+2. `ZEROCLAW_WORKSPACE` environment variable
+3. `~/.zeroclaw/active_workspace.toml` marker file
+4. Default `~/.zeroclaw/config.toml`
 
 ## Core Settings
 
@@ -295,19 +296,60 @@ zeroclaw cron run <name>
 
 ---
 
+## Response Cache
+
+```toml
+[cache]
+enabled = true
+ttl_secs = 300                    # Cache entry time-to-live
+max_entries = 10000               # Max cached responses
+analytics = true                  # Enable cache hit/miss analytics
+```
+
+**Settings:**
+- `enabled` - Enable two-tier response cache
+- `ttl_secs` - Time-to-live for cached entries
+- `max_entries` - Maximum number of cached responses
+- `analytics` - Track cache hit/miss rates and per-provider token usage
+
+---
+
+## Transcription Configuration
+
+```toml
+[transcription]
+enabled = false
+provider = "openai"               # "openai", "google", "local"
+model = "whisper-1"
+initial_prompt = ""               # Hint for proper nouns, acronyms, jargon
+language = ""                     # ISO 639-1 code (e.g., "en")
+```
+
+**Settings:**
+- `initial_prompt` - Text hint to improve transcription of domain-specific terms
+- `language` - Force language detection to specific language
+
+---
+
 ## Heartbeat Configuration
 
 ```toml
 [heartbeat]
 enabled = true
 interval_secs = 60
+adaptive = true                   # Adjust interval based on activity
 endpoint = "https://your-server/heartbeat"
+include_health = true             # Include health metrics in heartbeat
+include_task_history = false      # Include recent task history
 ```
 
 **Settings:**
 - `enabled` - Enable heartbeat monitoring
-- `interval_secs` - How often to send heartbeat
+- `interval_secs` - Base interval for heartbeat (adaptive mode adjusts this)
+- `adaptive` - Dynamically adjust interval based on agent activity
 - `endpoint` - URL to send heartbeat to
+- `include_health` - Attach health metrics to heartbeat payload
+- `include_task_history` - Include recent task execution history
 
 ---
 
@@ -468,6 +510,7 @@ ZeroClaw respects these environment variables:
 | `PROVIDER` | Default provider (legacy) |
 | `MODEL` | Default model override |
 | `TEMPERATURE` | Default temperature override |
+| `ZEROCLAW_CONFIG_DIR` | Custom config directory (highest priority) |
 | `ZEROCLAW_CONFIG_PATH` | Custom config file path |
 | `ZEROCLAW_WORKSPACE_DIR` | Custom workspace directory |
 

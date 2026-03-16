@@ -1,6 +1,6 @@
 # ZeroClaw Providers Reference
 
-ZeroClaw supports 30+ AI providers through a unified interface. This document provides complete provider catalog, authentication methods, and configuration examples.
+ZeroClaw supports 40+ AI providers through a unified interface. This document provides complete provider catalog, authentication methods, and configuration examples.
 
 **Quick reference:**
 ```bash
@@ -31,6 +31,8 @@ For fallback chains (`reliability.fallback_providers`), each fallback provider r
 | `openrouter` | — | No | `OPENROUTER_API_KEY` |
 | `anthropic` | — | No | `ANTHROPIC_OAUTH_TOKEN`, `ANTHROPIC_API_KEY` |
 | `openai` | — | No | `OPENAI_API_KEY` |
+| `openai-codex` | — | No | (OAuth via Codex CLI) |
+| `azure-openai` | `azure_openai` | No | `AZURE_OPENAI_API_KEY`, `AZURE_OPENAI_ENDPOINT` |
 | `ollama` | — | Yes | `OLLAMA_API_KEY` (optional) |
 | `gemini` | `google`, `google-gemini` | No | `GEMINI_API_KEY`, `GOOGLE_API_KEY` |
 | `venice` | — | No | `VENICE_API_KEY` |
@@ -64,6 +66,9 @@ For fallback chains (`reliability.fallback_providers`), each fallback provider r
 | `vllm` | — | Yes | `VLLM_API_KEY` (optional) |
 | `osaurus` | — | Yes | `OSAURUS_API_KEY` (optional) |
 | `nvidia` | `nvidia-nim`, `build.nvidia.com` | No | `NVIDIA_API_KEY` |
+| `telnyx` | — | No | `TELNYX_API_KEY` |
+| `aihubmix` | — | No | `AIHUBMIX_API_KEY` |
+| `siliconflow` | `silicon-flow` | No | `SILICONFLOW_API_KEY` |
 
 ## Quick Setup
 
@@ -183,6 +188,19 @@ Credential resolution:
 
 Optional: `QWEN_OAUTH_RESOURCE_URL`
 
+### Azure OpenAI
+
+- Requires `AZURE_OPENAI_API_KEY` and `AZURE_OPENAI_ENDPOINT`
+- Endpoint format: `https://<resource>.openai.azure.com`
+- Supports all Azure-deployed models
+- Uses Azure-specific API versioning
+
+### OpenAI Codex
+
+- OAuth-based authentication via Codex CLI
+- Provider ID: `openai-codex`
+- Credentials resolved from Codex CLI OAuth cache
+
 ### Kimi Code
 
 - Endpoint: `https://api.kimi.com/coding/v1`
@@ -228,6 +246,24 @@ Recommended models:
 - `deepseek-ai/deepseek-v3.2`
 - `nvidia/llama-3.3-nemotron-super-49b-v1.5`
 - `nvidia/llama-3.1-nemotron-ultra-253b-v1`
+
+### Telnyx
+
+- Provider ID: `telnyx`
+- Uses `TELNYX_API_KEY`
+- OpenAI-compatible endpoint
+
+### AiHubMix
+
+- Provider ID: `aihubmix`
+- Multi-provider aggregator
+- Uses `AIHUBMIX_API_KEY`
+
+### SiliconFlow
+
+- Provider ID: `siliconflow` (alias: `silicon-flow`)
+- Uses `SILICONFLOW_API_KEY`
+- OpenAI-compatible endpoint
 
 ### Vercel AI Gateway
 

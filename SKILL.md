@@ -10,7 +10,7 @@ ZeroClaw is a fast, small (<5MB RAM), fully autonomous AI assistant infrastructu
 
 **Core Characteristics:**
 - Single binary (~8.8MB release), no runtime dependencies
-- <10ms cold start, 16+ communication channels
+- <10ms cold start, 21+ communication channels
 - Runs on $10 hardware (ARM, x86, RISC-V)
 - Config: `~/.zeroclaw/config.toml`
 - Workspace: `~/.zeroclaw/workspace/`
@@ -72,8 +72,11 @@ zeroclaw onboard --channels-only  # Reconfigure channels only
 ## Providers & Models
 
 - `zeroclaw providers` - List all providers
+- `zeroclaw models list` - Show cached model catalog
 - `zeroclaw models refresh` - Refresh model catalogs
 - `zeroclaw models refresh --provider <ID>` - Refresh specific provider
+- `zeroclaw models set <provider/model>` - Set default model
+- `zeroclaw models status` - Current model info
 
 ## Channels
 
@@ -88,9 +91,25 @@ zeroclaw onboard --channels-only  # Reconfigure channels only
 - `zeroclaw service start/stop/restart` - Control service
 - `zeroclaw service status` - Check service status
 
+## Hardware & Peripherals
+
+- `zeroclaw hardware discover` - Find USB devices
+- `zeroclaw hardware introspect <port>` - Probe device capabilities
+- `zeroclaw peripheral list` - List configured peripherals
+- `zeroclaw peripheral add <name> <port>` - Add peripheral
+- `zeroclaw peripheral flash-nucleo` - Flash STM32 firmware
+- `zeroclaw peripheral flash --port <port>` - Flash Arduino firmware
+
+## Skills
+
+- `zeroclaw skills list` - List installed skills
+- `zeroclaw skills install <path-or-url>` - Install a skill
+- `zeroclaw skills audit` - Audit installed skills
+- `zeroclaw skills remove <name>` - Remove a skill
+
 ## Other
 
-- `zeroclaw completions bash|zsh` - Generate shell completions
+- `zeroclaw completions bash|zsh|fish` - Generate shell completions
 - `zeroclaw migrate openclaw [--dry-run]` - Import from OpenClaw
 - `zeroclaw gateway [--port 0]` - Start webhook gateway (port 0 = random)
 
@@ -98,14 +117,17 @@ zeroclaw onboard --channels-only  # Reconfigure channels only
 
 # Providers Overview
 
-ZeroClaw supports 30+ built-in providers plus custom endpoints.
+ZeroClaw supports 40+ built-in providers plus custom endpoints.
 
 **Built-in providers:**
 - `openrouter` - OpenRouter (default, multi-provider aggregation)
 - `anthropic` - Anthropic Claude models
 - `openai` / `openai-codex` - OpenAI (API key / OAuth)
-- `groq`, `xai`, `together`, `deepseek` - Cloud providers
-- `ollama`, `lmstudio`, `llamacpp`, `vllm`, `osaurus` - Local servers
+- `azure-openai` - Azure OpenAI Service
+- `groq`, `xai`, `together`, `deepseek`, `fireworks`, `novita` - Cloud providers
+- `gemini`, `bedrock`, `mistral`, `perplexity`, `cohere` - Cloud providers
+- `telnyx`, `aihubmix`, `siliconflow` - Cloud providers
+- `ollama`, `lmstudio`, `llamacpp`, `vllm`, `osaurus`, `sglang` - Local servers
 - `custom:<URL>` / `anthropic-custom:<URL>` - Any compatible endpoint
 
 **See complete catalog:** [PROVIDERS.md](references/PROVIDERS.md)
@@ -123,7 +145,7 @@ default_model = "your-model"
 
 # Channels Overview
 
-ZeroClaw supports 16+ communication channels.
+ZeroClaw supports 21+ communication channels.
 
 | Channel | Access Control | Quick Setup |
 |---|---|---|
@@ -133,6 +155,7 @@ ZeroClaw supports 16+ communication channels.
 | Slack | `allowed_users` | `zeroclaw onboard` |
 | Mattermost | `allowed_users` | Manual config |
 | WhatsApp | `allowed_numbers` | `zeroclaw onboard` (Web + Cloud API) |
+| WATI | `allowed_numbers` | Manual config (WhatsApp Business API) |
 | Signal | `allowed_from` | Manual config |
 | iMessage | `allowed_contacts` | macOS only |
 | Matrix | `allowed_users` | Manual config |
@@ -143,6 +166,11 @@ ZeroClaw supports 16+ communication channels.
 | QQ | `allowed_users` | Manual config |
 | Linq | `allowed_senders` | Manual config |
 | Nostr | `allowed_pubkeys` | Manual config |
+| X/Twitter | `allowed_users` | Manual config |
+| Nextcloud Talk | `allowed_users` | Manual config |
+| Notion | `allowed_users` | Manual config |
+| MQTT | `allowed_topics` | Manual config |
+| WeCom | `allowed_users` | Manual config |
 | Webhook | `secret` | Manual/onboard |
 
 **See detailed channel-by-channel setup:** [CHANNELS.md](references/CHANNELS.md)
