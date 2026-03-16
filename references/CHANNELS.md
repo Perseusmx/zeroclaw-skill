@@ -1,6 +1,6 @@
 # ZeroClaw Channels Reference
 
-ZeroClaw supports 16+ communication channels for autonomous AI interaction. This document provides detailed setup instructions for each channel.
+ZeroClaw supports 21+ communication channels for autonomous AI interaction. This document provides detailed setup instructions for each channel.
 
 **Quick reference:**
 ```bash
@@ -49,6 +49,7 @@ All channels use **deny-by-default** access control:
 | Matrix | Sync API (E2EE) | No | `allowed_users` | Manual config |
 | Signal | Signal-cli HTTP | No | `allowed_from` | Manual config |
 | WhatsApp | Webhook/WebSocket | Cloud API: Yes, Web: No | `allowed_numbers` | `zeroclaw onboard` / Manual |
+| WATI | Webhook | Yes | `allowed_numbers` | Manual config |
 | Webhook | Gateway endpoint | Usually yes | N/A (uses `secret`) | Manual/onboard |
 | Email | IMAP polling + SMTP | No | `allowed_senders` | Manual config |
 | IRC | IRC socket | No | `allowed_users` | `zeroclaw onboard` |
@@ -58,6 +59,11 @@ All channels use **deny-by-default** access control:
 | Linq | Webhook | Yes | `allowed_senders` | Manual config |
 | iMessage | Local integration | No | `allowed_contacts` | Manual config |
 | Nostr | Relay WebSocket | No | `allowed_pubkeys` | Manual config |
+| X/Twitter | Twitter API v2 | No | `allowed_users` | Manual config |
+| Nextcloud Talk | Bot API webhook | Yes | `allowed_users` | Manual config |
+| Notion | Notion API | No | `allowed_users` | Manual config |
+| MQTT | MQTT broker | No | `allowed_topics` | Manual config |
+| WeCom | WeChat Work API | No | `allowed_users` | Manual config |
 
 ---
 
@@ -282,6 +288,77 @@ cargo build --features channel-lark
 [channels_config.nostr]
 private_key = "nsec1..."                     # hex or nsec bech32
 allowed_pubkeys = ["hex-or-npub"]          # Empty = deny all, "*" = allow all
+```
+
+### WATI (WhatsApp Business)
+
+**Config:**
+```toml
+[channels_config.wati]
+api_endpoint = "https://live-mt-server.wati.io"
+api_token = "..."                            # from WATI dashboard
+allowed_numbers = ["*"]
+```
+
+### X/Twitter
+
+**Config:**
+```toml
+[channels_config.twitter]
+api_key = "..."                              # Twitter API v2 credentials
+api_secret = "..."
+access_token = "..."
+access_token_secret = "..."
+allowed_users = ["*"]
+```
+
+### Nextcloud Talk
+
+**Config:**
+```toml
+[channels_config.nextcloud_talk]
+server_url = "https://your-nextcloud.example.com"
+bot_secret = "..."                           # from Nextcloud Talk Bot settings
+allowed_users = ["*"]
+```
+
+Webhook signature verified via `X-Nextcloud-Talk-Signature`.
+
+### Notion
+
+**Config:**
+```toml
+[channels_config.notion]
+api_token = "..."                            # Notion integration token
+database_id = "..."                          # Notion database for messages
+allowed_users = ["*"]
+```
+
+### MQTT
+
+**Config:**
+```toml
+[channels_config.mqtt]
+broker = "mqtt://localhost:1883"
+topic_subscribe = "zeroclaw/inbox"
+topic_publish = "zeroclaw/outbox"
+client_id = "zeroclaw"
+username = ""                                # Optional
+password = ""                                # Optional
+allowed_topics = ["zeroclaw/#"]
+```
+
+### WeCom (WeChat Work)
+
+**Config:**
+```toml
+[channels_config.wecom]
+corp_id = "..."                              # from WeCom admin console
+agent_id = "..."
+secret = "..."
+token = "..."                                # callback verification
+encoding_aes_key = "..."
+allowed_users = ["*"]
 ```
 
 ---

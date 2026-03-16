@@ -58,7 +58,7 @@ ZeroClaw implements **defense-in-depth** across seven enforcement layers:
 
 ### Runtime and Network
 - [ ] Docker runtime used with `read_only_rootfs = true` (if applicable)
-- [ ] Sandbox backend configured (Landlock or Firejail) if needed
+- [ ] Sandbox backend configured (Landlock, Firejail, or Bubblewrap) if needed
 - [ ] Browser automation restricted with `allowed_domains`
 - [ ] Tunnel provider is secure (Cloudflare/Tailscale preferred over ngrok)
 - [ ] Logging configured with rotation (`max_size_mb`, `max_files`)
@@ -102,6 +102,7 @@ Auth profiles stored in `~/.zeroclaw/auth-profiles.json` (encrypted with `~/.zer
 - Using native runtime without sandbox in production
 - Disabling `read_only_rootfs` in Docker
 - Enabling browser without `allowed_domains`
+- Not using available sandbox backends (Landlock on Linux 5.13+, Firejail, or Bubblewrap)
 
 ---
 
