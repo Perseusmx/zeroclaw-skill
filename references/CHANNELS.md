@@ -1,199 +1,170 @@
 # ZeroClaw Channels Reference
 
-ZeroClaw supports 21+ communication channels for autonomous AI interaction. This document provides detailed setup instructions for each channel.
+This reference was refreshed against the official ZeroClaw channels docs on **March 28, 2026**.
 
-**Quick reference:**
+## Quick Reference
+
 ```bash
-# List all configured channels
 zeroclaw channel list
-
-# Start all channels
 zeroclaw channel start
-
-# Start specific channel
-zeroclaw channel start --channel <channel-name>
-
-# Channel health check
 zeroclaw channel doctor
 ```
 
+Channel startup is best-effort: one channel can fail initialization while others still start.
+
 ## Security Model
 
-All channels use **deny-by-default** access control:
+All channels are deny-by-default:
 - Empty allowlist: deny all inbound messages
-- `"*"`: allow all senders (use for verification only)
-- Explicit list: allow only listed senders
+- `"*"`: allow all inbound senders temporarily
+- Explicit list: allow only the listed senders
 
-<security-warning>
-**⚠️ SECURITY**: Always start with `"*"` allowlist for verification, then tighten to explicit IDs. Never keep `"*"` in production configurations.
-</security-warning>
+Use `"*"` only for verification, then tighten it immediately.
 
-## In-Chat Commands
+## Runtime Chat Commands
 
-**Telegram and Discord** support runtime model switching:
-- `/models` - Show available providers and current selection
-- `/models <provider>` - Switch provider for current session
-- `/model` - Show current model
-- `/model <model-id>` - Switch model for current session
-- `/new` - Clear conversation history and start fresh
+Telegram and Discord support per-sender runtime routing:
+- `/models`
+- `/models <provider>`
+- `/model`
+- `/model <model-id>`
+- `/new`
+
+Non-CLI channels also support supervised approval commands:
+- `/approve-request <tool>`
+- `/approve-confirm <request-id>`
+- `/approve-allow <tool>`
+- `/approve-deny <request-id>`
+- `/approve-pending`
+- `/approve <tool>`
+- `/unapprove <tool>`
+- `/approvals`
+
+Natural-language approval intents can also be enabled through `[autonomy].non_cli_natural_language_approval_mode`.
 
 ## Channel Matrix
 
-| Channel | Receive Mode | Public Port Required | Allowlist Field | Quick Setup |
-|---|---|---|---|---|
-| CLI | Local stdin/stdout | No | N/A | Built-in |
-| Telegram | Polling | No | `allowed_users` | `zeroclaw onboard` |
-| Discord | Gateway/WebSocket | No | `allowed_users` | `zeroclaw onboard` |
-| Slack | Events API | No | `allowed_users` | `zeroclaw onboard` |
-| Mattermost | Polling | No | `allowed_users` | Manual config |
-| Matrix | Sync API (E2EE) | No | `allowed_users` | Manual config |
-| Signal | Signal-cli HTTP | No | `allowed_from` | Manual config |
-| WhatsApp | Webhook/WebSocket | Cloud API: Yes, Web: No | `allowed_numbers` | `zeroclaw onboard` / Manual |
-| WATI | Webhook | Yes | `allowed_numbers` | Manual config |
-| Webhook | Gateway endpoint | Usually yes | N/A (uses `secret`) | Manual/onboard |
-| Email | IMAP polling + SMTP | No | `allowed_senders` | Manual config |
-| IRC | IRC socket | No | `allowed_users` | `zeroclaw onboard` |
-| Lark | WebSocket/Webhook | Webhook mode: Yes | `allowed_users` | Manual config |
-| DingTalk | Stream mode | No | `allowed_users` | `zeroclaw onboard` |
-| QQ | Bot gateway | No | `allowed_users` | Manual config |
-| Linq | Webhook | Yes | `allowed_senders` | Manual config |
-| iMessage | Local integration | No | `allowed_contacts` | Manual config |
-| Nostr | Relay WebSocket | No | `allowed_pubkeys` | Manual config |
-| X/Twitter | Twitter API v2 | No | `allowed_users` | Manual config |
-| Nextcloud Talk | Bot API webhook | Yes | `allowed_users` | Manual config |
-| Notion | Notion API | No | `allowed_users` | Manual config |
-| MQTT | MQTT broker | No | `allowed_topics` | Manual config |
-| WeCom | WeChat Work API | No | `allowed_users` | Manual config |
+| Channel | Receive Mode | Public Port Required | Allowlist Field |
+|---|---|---|---|
+| CLI | local stdin/stdout | No | n/a |
+| Telegram | polling | No | `allowed_users` |
+| Discord | gateway/websocket | No | `allowed_users` |
+| Slack | Events API | No | `allowed_users` |
+| Mattermost | polling | No | `allowed_users` |
+| Matrix | sync API | No | `allowed_users` |
+| Signal | signal-cli HTTP bridge | No | `allowed_from` |
+| WhatsApp | webhook or websocket | Cloud API only | `allowed_numbers` |
+| WATI | webhook | Yes | `allowed_numbers` |
+| Webhook | gateway endpoint | Usually yes | `secret` |
+| Email | IMAP polling + SMTP | No | `allowed_senders` |
+| IRC | IRC socket | No | `allowed_users` |
+| Lark | websocket or webhook | Webhook mode only | `allowed_users` |
+| Feishu | websocket or webhook | Webhook mode only | `allowed_users` |
+| DingTalk | stream mode | No | `allowed_users` |
+| QQ | bot gateway | No | `allowed_users` |
+| Napcat | websocket + HTTP send | No | `allowed_users` |
+| Linq | webhook | Yes | `allowed_senders` |
+| iMessage | local integration | No | `allowed_contacts` |
+| Nextcloud Talk | webhook | Yes | `allowed_users` |
+| ACP | stdio JSON-RPC 2.0 | No | `allowed_users` |
+| Nostr | relay websocket | No | `allowed_pubkeys` |
 
----
-
-## Per-Channel Setup
+## Common Config Shapes
 
 ### Telegram
 
-**Quick setup:**
-```bash
-zeroclaw onboard
-# Follow prompts for Telegram bot token
-```
-
-**Manual config:**
 ```toml
 [channels_config.telegram]
-bot_token = "123456:your-telegram-bot-token"
-allowed_users = ["your-username"]  # or user ID
-stream_mode = "off"                # off | partial
-draft_update_interval_ms = 1000      # Edit throttle for streaming
-mention_only = false                # Require @mention in groups
-interrupt_on_new_message = false      # Cancel on new message
+bot_token = "123456:telegram-token"
+allowed_users = ["*"]
+stream_mode = "off" # off | partial | on
+draft_update_interval_ms = 1000
+mention_only = false
+interrupt_on_new_message = false
+ack_enabled = true
+
+[channels_config.telegram.group_reply]
+mode = "all_messages" # or "mention_only"
+allowed_sender_ids = []
 ```
-
-**Get bot token:**
-1. Message @BotFather on Telegram
-2. Create new bot
-3. Copy the token
-
-**Get user ID:**
-1. Message `@userinfobot` on Telegram
-2. Copy your numeric user ID
 
 ### Discord
 
-**Quick setup:**
-```bash
-zeroclaw onboard
-# Follow prompts for Discord bot token
-```
-
-**Manual config:**
 ```toml
 [channels_config.discord]
-bot_token = "..."  # from Discord Developer Portal
-guild_id = "123456789012345678"   # Optional: specific server
-allowed_users = ["*"]                   # User IDs
+bot_token = "discord-bot-token"
+guild_id = "123456789012345678" # optional
+allowed_users = ["*"]
 listen_to_bots = false
 mention_only = false
+
+[channels_config.discord.group_reply]
+mode = "all_messages"
+allowed_sender_ids = []
 ```
-
-**Get bot token:**
-1. Go to Discord Developer Portal
-2. Create application → Bot → Add Bot
-3. Enable Message Content Intent
-4. Copy the token
-
-**Get user ID:**
-1. Enable Developer Mode in Discord
-2. Right-click user → Copy User ID
 
 ### Slack
 
-**Quick setup:**
-```bash
-zeroclaw onboard
-# Follow prompts for Slack bot token
-```
-
-**Manual config:**
 ```toml
 [channels_config.slack]
-bot_token = "xoxb-your-bot-token"
-app_token = "xapp-your-app-token"       # Optional: Socket Mode
-channel_id = "C1234567890"            # Optional: specific channel
-allowed_users = ["*"]                   # Member IDs
-```
+bot_token = "xoxb-..."
+app_token = "xapp-..." # optional
+channel_id = "*"       # omit or "*" for all accessible channels
+allowed_users = ["*"]
 
-**Listen behavior:**
-- `channel_id = "C123..."`: Listen only on that channel
-- `channel_id = "*"` or omitted: Listen across all accessible channels
-
-### WhatsApp
-
-ZeroClaw supports two backends:
-
-#### Cloud API Mode
-
-**Config:**
-```toml
-[channels_config.whatsapp]
-access_token = "..."   # from Meta Business Suite
-phone_number_id = "..."
-verify_token = "..."   # your chosen verification string
-app_secret = "..."     # recommended for webhook signature verification
-allowed_numbers = ["*"]
-```
-
-#### WhatsApp Web Mode
-
-**Config:**
-```toml
-[channels_config.whatsapp]
-session_path = "~/.zeroclaw/state/whatsapp-web/session.db"
-pair_phone = "+15551234567"              # Optional
-pair_code = ""                          # Optional
-allowed_numbers = ["*"]
+[channels_config.slack.group_reply]
+mode = "all_messages"
+allowed_sender_ids = []
 ```
 
 ### Matrix
 
-**Config:**
 ```toml
 [channels_config.matrix]
 homeserver = "https://matrix.example.com"
-access_token = "syt_your-access-token"
-user_id = "@zeroclaw:matrix.example.com"     # Optional, recommended for E2EE
-device_id = "DEVICEID123"                     # Optional, recommended for E2EE
-room_id = "!room:matrix.example.com"           # or #alias:matrix.example.com
+access_token = "syt_..."
+user_id = "@zeroclaw:matrix.example.com" # recommended for E2EE
+device_id = "DEVICEID123"                # recommended for E2EE
+room_id = "!room:matrix.example.com"
 allowed_users = ["*"]
+mention_only = false
 ```
 
-**Build requirements:**
-```bash
-cargo build --features channel-matrix
+Matrix support may require a build with `channel-matrix`.
+
+### WhatsApp
+
+Cloud API:
+
+```toml
+[channels_config.whatsapp]
+access_token = "EAAB..."
+phone_number_id = "123456789012345"
+verify_token = "your-verify-token"
+app_secret = "your-app-secret"
+allowed_numbers = ["*"]
+```
+
+WhatsApp Web:
+
+```toml
+[channels_config.whatsapp]
+session_path = "~/.zeroclaw/state/whatsapp-web/session.db"
+pair_phone = "15551234567" # optional
+pair_code = ""             # optional
+allowed_numbers = ["*"]
+```
+
+### Webhook
+
+```toml
+[channels_config.webhook]
+port = 8080
+secret = "optional-shared-secret"
 ```
 
 ### Email
 
-**Config:**
 ```toml
 [channels_config.email]
 imap_host = "imap.example.com"
@@ -207,214 +178,125 @@ password = "email-password"
 from_address = "bot@example.com"
 poll_interval_secs = 60
 allowed_senders = ["*"]
-```
-
-### IRC
-
-**Config:**
-```toml
-[channels_config.irc]
-server = "irc.libera.chat"
-port = 6697
-nickname = "zeroclaw-bot"
-username = "zeroclaw"                    # Optional
-channels = ["#zeroclaw"]
-allowed_users = ["*"]
-server_password = ""                       # Optional
-nickserv_password = ""                      # Optional
-sasl_password = ""                         # Optional
-verify_tls = true
-```
-
-### Webhook Channel
-
-**Config:**
-```toml
-[channels_config.webhook]
-port = 8080
-secret = "..."  # shared HMAC secret
-```
-
-**Usage:**
-```bash
-# Send message
-curl -X POST http://localhost:8080/webhook \
-  -H "Content-Type: application/json" \
-  -H "X-Webhook-Secret: $WEBHOOK_SECRET" \
-  -d '{"message": "Hello, ZeroClaw!"}'
-```
-
-### DingTalk
-
-**Quick setup:**
-```bash
-zeroclaw onboard
-# Follow prompts for DingTalk
-```
-
-**Config:**
-```toml
-[channels_config.dingtalk]
-client_id = "..."      # from DingTalk open platform
-client_secret = "..."  # from DingTalk open platform
-allowed_users = ["*"]
+imap_id = { enabled = true, name = "zeroclaw", version = "0.6.5", vendor = "zeroclaw-labs" }
 ```
 
 ### Lark
 
-**Config:**
 ```toml
 [channels_config.lark]
-app_id = "cli_xxx"
-app_secret = "xxx"
-encrypt_key = ""                          # Optional
-verification_token = ""                     # Optional
+app_id = "your_lark_app_id"
+app_secret = "your_lark_app_secret"
+encrypt_key = ""
+verification_token = ""
 allowed_users = ["*"]
-mention_only = false                       # Require @mention in groups
-use_feishu = false
-receive_mode = "websocket"          # or "webhook"
-port = 8081                              # Required for webhook mode
+receive_mode = "websocket" # or "webhook"
+port = 8081                # required for webhook mode
+
+[channels_config.lark.group_reply]
+mode = "all_messages"
+allowed_sender_ids = []
 ```
 
-**Build requirements:**
-```bash
-cargo build --features channel-lark
-```
+### Feishu
 
-### Nostr
-
-**Config:**
 ```toml
-[channels_config.nostr]
-private_key = "nsec1..."                     # hex or nsec bech32
-allowed_pubkeys = ["hex-or-npub"]          # Empty = deny all, "*" = allow all
+[channels_config.feishu]
+app_id = "your_feishu_app_id"
+app_secret = "your_feishu_app_secret"
+encrypt_key = ""
+verification_token = ""
+allowed_users = ["*"]
+receive_mode = "websocket" # or "webhook"
+port = 8081
+
+[channels_config.feishu.group_reply]
+mode = "all_messages"
+allowed_sender_ids = []
 ```
 
-### WATI (WhatsApp Business)
+### QQ
 
-**Config:**
 ```toml
-[channels_config.wati]
-api_endpoint = "https://live-mt-server.wati.io"
-api_token = "..."                            # from WATI dashboard
-allowed_numbers = ["*"]
+[channels_config.qq]
+app_id = "qq-app-id"
+app_secret = "qq-app-secret"
+allowed_users = ["*"]
+receive_mode = "webhook" # default; websocket is legacy fallback
+environment = "production"
 ```
 
-### X/Twitter
+### Napcat
 
-**Config:**
 ```toml
-[channels_config.twitter]
-api_key = "..."                              # Twitter API v2 credentials
-api_secret = "..."
-access_token = "..."
-access_token_secret = "..."
+[channels_config.napcat]
+websocket_url = "ws://127.0.0.1:3001"
+api_base_url = "http://127.0.0.1:3001"
+access_token = ""
 allowed_users = ["*"]
 ```
 
 ### Nextcloud Talk
 
-**Config:**
 ```toml
 [channels_config.nextcloud_talk]
-server_url = "https://your-nextcloud.example.com"
-bot_secret = "..."                           # from Nextcloud Talk Bot settings
+base_url = "https://cloud.example.com"
+app_token = "nextcloud-talk-app-token"
+webhook_secret = "optional-webhook-secret"
 allowed_users = ["*"]
 ```
 
-Webhook signature verified via `X-Nextcloud-Talk-Signature`.
+### Linq
 
-### Notion
-
-**Config:**
 ```toml
-[channels_config.notion]
-api_token = "..."                            # Notion integration token
-database_id = "..."                          # Notion database for messages
+[channels_config.linq]
+api_token = "linq-partner-api-token"
+from_phone = "+15551234567"
+signing_secret = "optional-webhook-signing-secret"
+allowed_senders = ["*"]
+```
+
+### WATI
+
+```toml
+[channels_config.wati]
+api_token = "wati-api-token"
+api_url = "https://live-mt-server.wati.io"
+webhook_secret = "required-shared-secret"
+tenant_id = "tenant-id"
+allowed_numbers = ["*"]
+```
+
+### ACP
+
+```toml
+[channels_config.acp]
+opencode_path = "opencode"
+workdir = "/path/to/workspace"
+extra_args = []
 allowed_users = ["*"]
 ```
-
-### MQTT
-
-**Config:**
-```toml
-[channels_config.mqtt]
-broker = "mqtt://localhost:1883"
-topic_subscribe = "zeroclaw/inbox"
-topic_publish = "zeroclaw/outbox"
-client_id = "zeroclaw"
-username = ""                                # Optional
-password = ""                                # Optional
-allowed_topics = ["zeroclaw/#"]
-```
-
-### WeCom (WeChat Work)
-
-**Config:**
-```toml
-[channels_config.wecom]
-corp_id = "..."                              # from WeCom admin console
-agent_id = "..."
-secret = "..."
-token = "..."                                # callback verification
-encoding_aes_key = "..."
-allowed_users = ["*"]
-```
-
----
 
 ## Validation Workflow
 
-Follow this workflow for any channel setup:
-
-1. **Configure** channel with permissive allowlist (`"*"`) for initial verification
-2. **Start** channels:
-   ```bash
-   zeroclaw channel start
-   ```
-3. **Test** by sending a message from an expected sender
-4. **Confirm** reply arrives
-5. **Tighten** allowlist from `"*"` to explicit IDs
-
-```bash
-# Interactive onboarding
-zeroclaw onboard --channels-only
-```
+1. Configure one channel with `"*"` temporarily.
+2. Run `zeroclaw onboard --channels-only`.
+3. Run `zeroclaw daemon`.
+4. Send a test message from the expected sender.
+5. Replace `"*"` with explicit IDs or contacts.
 
 ## Troubleshooting
 
-### No Response from Channel
+If a channel appears connected but does not respond:
+1. Check the correct allowlist field.
+2. Check bot membership and permissions.
+3. Check tokens, secrets, and callback URLs.
+4. For webhook channels, confirm reachable HTTPS.
+5. Restart `zeroclaw daemon` after config changes.
 
-1. **Check allowlist:** Confirm sender identity is allowed
-2. **Check permissions:** Verify bot account membership/permissions in room/channel
-3. **Verify credentials:** Confirm tokens/secrets are valid and not expired
-4. **Check transport mode:**
-   - Polling/WebSocket channels: No public HTTP needed
-   - Webhook channels: Public HTTPS callback required
-5. **Restart daemon:**
-   ```bash
-   zeroclaw daemon --restart
-   ```
+For fast log capture:
 
-### Log Analysis
-
-**Capture logs:**
 ```bash
 RUST_LOG=info zeroclaw daemon 2>&1 | tee /tmp/zeroclaw.log
+rg -n "Telegram|Discord|Slack|Mattermost|Matrix|Signal|WhatsApp|Email|IRC|Lark|Feishu|DingTalk|QQ|Napcat|Nostr|ACP|Webhook|Channel" /tmp/zeroclaw.log
 ```
-
-**Filter channel events:**
-```bash
-rg -n "Telegram|Discord|Slack|WhatsApp" /tmp/zeroclaw.log
-```
-
-## Security Best Practices
-
-1. **Never commit tokens** to version control
-2. **Use environment variables** for sensitive credentials
-3. **Start with `"*"`** allowlist, then tighten
-4. **Rotate credentials** regularly
-5. **Use webhook secrets** to verify callbacks
-6. **Enable TLS** for all network connections
-7. **Restrict bot permissions** to minimum required
-8. **Audit allowlists** periodically

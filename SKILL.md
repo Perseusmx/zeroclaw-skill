@@ -6,15 +6,17 @@ license: MIT
 
 # ZeroClaw Quick Reference
 
-ZeroClaw is a fast, small (<5MB RAM), fully autonomous AI assistant infrastructure built in Rust.
+This skill was verified against the official ZeroClaw docs and GitHub tags on **March 28, 2026**.
+Current latest upstream release at verification time: **v0.6.5** (released **March 27, 2026**).
 
-**Core Characteristics:**
-- Single binary (~8.8MB release), no runtime dependencies
-- <10ms cold start, 21+ communication channels
-- Runs on $10 hardware (ARM, x86, RISC-V)
-- Config: `~/.zeroclaw/config.toml`
-- Workspace: `~/.zeroclaw/workspace/`
-- Auth profiles: `~/.zeroclaw/auth-profiles.json` (encrypted)
+ZeroClaw is a small Rust runtime for autonomous AI assistants with swappable providers, tools, memory, channels, and peripherals.
+
+**Core characteristics:**
+- Single binary workflow with fast startup and low memory footprint
+- Config file: `~/.zeroclaw/config.toml`
+- Workspace marker: `~/.zeroclaw/active_workspace.toml`
+- Workspace data: `~/.zeroclaw/workspace/`
+- Auth profiles: `~/.zeroclaw/auth-profiles.json`
 
 ---
 
@@ -26,32 +28,39 @@ ZeroClaw is a fast, small (<5MB RAM), fully autonomous AI assistant infrastructu
 # Homebrew (macOS/Linux)
 brew install zeroclaw
 
-# Clone + bootstrap (recommended — inspect before running)
+# Clone + bootstrap
 git clone https://github.com/zeroclaw-labs/zeroclaw.git
 cd zeroclaw && ./bootstrap.sh
 
-# Bootstrap options: --prefer-prebuilt, --prebuilt-only, --docker, --onboard
-
-# Cargo (requires Rust toolchain)
+# Cargo
 cargo install zeroclaw
 ```
 
 ## Update
 
 ```bash
-git clone https://github.com/zeroclaw-labs/zeroclaw.git /tmp/zeroclaw-update
-cd /tmp/zeroclaw-update && bash scripts/bootstrap.sh --prefer-prebuilt
-rm -rf /tmp/zeroclaw-update
-zeroclaw --version
+# Preferred when installed via Homebrew
+brew upgrade zeroclaw
+
+# Built-in updater
+zeroclaw update --check
+zeroclaw update
+zeroclaw update --instructions
 ```
 
 ## Onboarding
 
 ```bash
 ZEROCLAW_API_KEY="..." zeroclaw onboard --provider openrouter
-zeroclaw onboard --interactive    # Full wizard
-zeroclaw onboard --channels-only  # Reconfigure channels only
+zeroclaw onboard --interactive
+zeroclaw onboard --channels-only
+zeroclaw onboard --force
 ```
+
+Notes:
+- Interactive onboarding now supports full overwrite or provider-only updates.
+- Existing configs are preserved unless you explicitly force replacement.
+- OpenClaw migration is merge-first.
 
 ---
 
@@ -59,138 +68,120 @@ zeroclaw onboard --channels-only  # Reconfigure channels only
 
 ## Daily Use
 
-- `zeroclaw agent` - Interactive AI chat
-- `zeroclaw agent -m "message"` - Single message
-- `zeroclaw daemon` - Full autonomous runtime
+- `zeroclaw agent` - Interactive chat
+- `zeroclaw agent -m "message"` - Single-message mode
+- `zeroclaw daemon` - Start the supervised runtime
+- `zeroclaw gateway` - Start the webhook/WhatsApp gateway
 
 ## Diagnostics
 
-- `zeroclaw status` - Check system status
-- `zeroclaw doctor` - Run full diagnostics
-- `zeroclaw channel doctor` - Check channel health
+- `zeroclaw status` - Current config and system summary
+- `zeroclaw doctor` - Run diagnostics
+- `zeroclaw doctor models --provider <id>` - Provider/model checks
+- `zeroclaw doctor traces --limit 20` - Runtime trace inspection
 
-## Providers & Models
+## Providers and Models
 
-- `zeroclaw providers` - List all providers
-- `zeroclaw models list` - Show cached model catalog
+- `zeroclaw providers` - List providers and aliases
+- `zeroclaw providers-quota` - Show quota and health
 - `zeroclaw models refresh` - Refresh model catalogs
-- `zeroclaw models refresh --provider <ID>` - Refresh specific provider
-- `zeroclaw models set <provider/model>` - Set default model
-- `zeroclaw models status` - Current model info
+- `zeroclaw models refresh --provider <id>` - Refresh one provider
 
-## Channels
+## Config and Control
 
-- `zeroclaw channel list` - List all channels
-- `zeroclaw channel start` - Start channels
-- `zeroclaw channel start <channel>` - Start specific channel
+- `zeroclaw config show` - Print effective config with masked secrets
+- `zeroclaw config get <dot.path>` - Read one value
+- `zeroclaw config set <dot.path> <value>` - Persist one value
+- `zeroclaw config schema` - Print JSON Schema
+- `zeroclaw estop` - Engage emergency stop
+- `zeroclaw estop status|resume` - Inspect or resume E-Stop
 
-## Service
+## Channels and Skills
 
-- `zeroclaw service install` - Install as system service
-- `zeroclaw service uninstall` - Remove system service
-- `zeroclaw service start/stop/restart` - Control service
-- `zeroclaw service status` - Check service status
+- `zeroclaw channel list|start|doctor` - Channel operations
+- `zeroclaw skills list|install|audit|remove` - Skill management
 
-## Hardware & Peripherals
+## Services, Scheduling, Hardware
 
-- `zeroclaw hardware discover` - Find USB devices
-- `zeroclaw hardware introspect <port>` - Probe device capabilities
-- `zeroclaw peripheral list` - List configured peripherals
-- `zeroclaw peripheral add <name> <port>` - Add peripheral
-- `zeroclaw peripheral flash-nucleo` - Flash STM32 firmware
-- `zeroclaw peripheral flash --port <port>` - Flash Arduino firmware
-
-## Skills
-
-- `zeroclaw skills list` - List installed skills
-- `zeroclaw skills install <path-or-url>` - Install a skill
-- `zeroclaw skills audit` - Audit installed skills
-- `zeroclaw skills remove <name>` - Remove a skill
+- `zeroclaw service install|start|stop|restart|status|uninstall`
+- `zeroclaw cron list|add|add-at|add-every|once|remove`
+- `zeroclaw hardware discover|introspect <port>`
+- `zeroclaw peripheral list|add <name> <port>|flash`
 
 ## Other
 
-- `zeroclaw completions bash|zsh|fish` - Generate shell completions
+- `zeroclaw security update-guard-corpus` - Refresh security guard corpus
+- `zeroclaw integrations info <name>` - Inspect integration details
 - `zeroclaw migrate openclaw [--dry-run]` - Import from OpenClaw
-- `zeroclaw gateway [--port 0]` - Start webhook gateway (port 0 = random)
+- `zeroclaw completions bash|fish|zsh|powershell|elvish`
 
 ---
 
 # Providers Overview
 
-ZeroClaw supports 40+ built-in providers plus custom endpoints.
+The current upstream provider reference documents a broad mixed catalog of hosted, local, and OAuth-backed providers.
 
-**Built-in providers:**
-- `openrouter` - OpenRouter (default, multi-provider aggregation)
-- `anthropic` - Anthropic Claude models
-- `openai` / `openai-codex` - OpenAI (API key / OAuth)
-- `azure-openai` - Azure OpenAI Service
-- `groq`, `xai`, `together`, `deepseek`, `fireworks`, `novita` - Cloud providers
-- `gemini`, `bedrock`, `mistral`, `perplexity`, `cohere` - Cloud providers
-- `telnyx`, `aihubmix`, `siliconflow` - Cloud providers
-- `ollama`, `lmstudio`, `llamacpp`, `vllm`, `osaurus`, `sglang` - Local servers
-- `custom:<URL>` / `anthropic-custom:<URL>` - Any compatible endpoint
+**Common provider IDs:**
+- Hosted: `openrouter`, `anthropic`, `openai`, `gemini`, `groq`, `mistral`, `deepseek`, `xai`, `cohere`, `perplexity`, `fireworks`, `novita`, `vercel`, `cloudflare`, `nvidia`
+- Regional/specialized: `qwen`, `doubao`, `qianfan`, `glm`, `zai`, `minimax`, `moonshot`, `stepfun`, `hunyuan`, `siliconflow`
+- Local/server: `ollama`, `lmstudio`, `llamacpp`, `sglang`, `vllm`, `osaurus`
+- Other integrations: `cursor`, `copilot`, `bedrock`, `synthetic`, `opencode`
 
-**See complete catalog:** [PROVIDERS.md](references/PROVIDERS.md)
+**Credential resolution order:**
+1. Explicit credential from config or CLI
+2. Provider-specific environment variable
+3. Fallback `ZEROCLAW_API_KEY`
+4. Fallback `API_KEY`
 
 **Quick custom provider setup:**
 
 ```toml
-# ~/.zeroclaw/config.toml
 default_provider = "custom:https://your-api.example.com"
-# api_key resolved from $ZEROCLAW_API_KEY env var (recommended) or set here
-default_model = "your-model"
+default_model = "your-model-id"
 ```
+
+**See full catalog and notes:** [PROVIDERS.md](references/PROVIDERS.md)
 
 ---
 
 # Channels Overview
 
-ZeroClaw supports 21+ communication channels.
+The current upstream channels reference documents these active channel surfaces:
+- `cli`
+- `telegram`, `discord`, `slack`, `mattermost`
+- `matrix`, `signal`, `whatsapp`, `wati`
+- `webhook`, `email`, `irc`
+- `lark`, `feishu`, `dingtalk`
+- `qq`, `napcat`, `linq`
+- `imessage`, `nextcloud_talk`, `nostr`
+- `acp`
 
-| Channel | Access Control | Quick Setup |
-|---|---|---|
-| CLI | n/a | Built-in |
-| Telegram | `allowed_users` | `zeroclaw onboard` |
-| Discord | `allowed_users` | `zeroclaw onboard` |
-| Slack | `allowed_users` | `zeroclaw onboard` |
-| Mattermost | `allowed_users` | Manual config |
-| WhatsApp | `allowed_numbers` | `zeroclaw onboard` (Web + Cloud API) |
-| WATI | `allowed_numbers` | Manual config (WhatsApp Business API) |
-| Signal | `allowed_from` | Manual config |
-| iMessage | `allowed_contacts` | macOS only |
-| Matrix | `allowed_users` | Manual config |
-| Email | `allowed_senders` | Manual config |
-| IRC | `allowed_users` | `zeroclaw onboard` |
-| Lark | `allowed_users` | Manual config |
-| DingTalk | `allowed_users` | `zeroclaw onboard` |
-| QQ | `allowed_users` | Manual config |
-| Linq | `allowed_senders` | Manual config |
-| Nostr | `allowed_pubkeys` | Manual config |
-| X/Twitter | `allowed_users` | Manual config |
-| Nextcloud Talk | `allowed_users` | Manual config |
-| Notion | `allowed_users` | Manual config |
-| MQTT | `allowed_topics` | Manual config |
-| WeCom | `allowed_users` | Manual config |
-| Webhook | `secret` | Manual/onboard |
-
-**See detailed channel-by-channel setup:** [CHANNELS.md](references/CHANNELS.md)
+**Runtime chat commands on supported channels:**
+- `/models`, `/models <provider>`
+- `/model`, `/model <model-id>`
+- `/new`
+- `/approve-request`, `/approve-confirm`, `/approve-allow`, `/approve-deny`, `/approve-pending`, `/approve`, `/unapprove`, `/approvals`
 
 <security-warning>
-**⚠️ SECURITY**: All channels use deny-by-default. Empty arrays deny all access, `["*"]` allows all. Only allow trusted users/contacts to prevent unauthorized access.
+**SECURITY**: Channel access is deny-by-default. Empty allowlists deny all access, `["*"]` allows all. Use `"*"` only for initial verification, then replace it with explicit user IDs, contacts, senders, or pubkeys.
 </security-warning>
+
+**See detailed setup:** [CHANNELS.md](references/CHANNELS.md)
 
 ---
 
 # Configuration Overview
 
-ZeroClaw uses `~/.zeroclaw/config.toml` for all settings.
+Config resolution at startup:
+1. `ZEROCLAW_WORKSPACE`
+2. `~/.zeroclaw/active_workspace.toml`
+3. Default `~/.zeroclaw/config.toml`
 
 **Basic provider setup:**
 
 ```toml
 default_provider = "openrouter"
-# api_key resolved from $ZEROCLAW_API_KEY env var (recommended) or set here (encrypted at rest)
-default_model = "anthropic/claude-sonnet-4.5"
+default_model = "anthropic/claude-sonnet-4-6"
 default_temperature = 0.7
 ```
 
@@ -198,9 +189,9 @@ default_temperature = 0.7
 
 | Level | Description |
 |---|---|
-| `supervised` | Maximum restriction; requires explicit approval for all actions |
-| `assisted` | Moderate oversight with command allowlisting |
-| `full` | No approval required (use only on trusted machines) |
+| `supervised` | Approval for all risky actions; highest restriction |
+| `assisted` | Allowlisted commands with moderated automation |
+| `full` | No approval gating; trusted machines only |
 
 ```toml
 [autonomy]
@@ -211,73 +202,47 @@ max_actions_per_hour = 20
 max_cost_per_day_cents = 500
 ```
 
+**Useful sections to know:**
+- `[model_providers.<name>]` - Named provider profiles and custom endpoints
+- `[observability]` - OTel/log tracing and runtime traces
+- `[gateway]` - Pairing and bind controls
+- `[security.estop]` - Emergency-stop behavior
+- `[skills]` - Skill install policy and trusted roots
+
 <security-warning>
-**⚠️ HIGH RISK**: Setting `level = "full"` removes all guardrails. Only use on trusted, personal machines. The AI can execute any command without approval.
+**HIGH RISK**: `level = "full"` removes approval guardrails. Use it only on trusted personal systems.
 </security-warning>
 
-**Emergency Stop (E-Stop):** ZeroClaw includes a multi-granularity shutdown system:
-- `kill_all` - Terminate entire agent runtime
-- `network_kill` - Block all external API calls
-- `domain_block` - Restrict browser navigation
-- `tool_freeze` - Prevent tool execution while preserving state
-
-**Common security settings:**
-
-```toml
-# Restrict to workspace only (recommended)
-[autonomy]
-workspace_only = true
-allowed_paths = ["/path/to/project"]
-
-# Set cost limits
-[autonomy]
-max_cost_per_day_cents = 500
-max_actions_per_hour = 20
-
-# Block dangerous commands
-[autonomy]
-blocked_commands = ["rm -rf", "dd", "mkfs"]
-```
-
-**See complete config reference:** [CONFIG.md](references/CONFIG.md)
-**See security best practices:** [SECURITY.md](references/SECURITY.md)
+**See config reference:** [CONFIG.md](references/CONFIG.md)
+**See security guidance:** [SECURITY.md](references/SECURITY.md)
 
 ---
 
 # Troubleshooting
 
-## Quick Diagnostics
+## Quick Checks
 
 ```bash
 zeroclaw --version
 zeroclaw status
 zeroclaw doctor
+zeroclaw doctor traces --limit 20
 zeroclaw channel doctor
 ```
 
 ## Common Issues
 
-| Problem | Solution |
+| Problem | What to check |
 |---|---|
-| `cargo` not found | Run `./bootstrap.sh --install-rust` |
-| `zeroclaw` command not found | Add to PATH: `export PATH="$HOME/.cargo/bin:$PATH"` |
-| Gateway unreachable | Check `gateway.host`/`port` in config.toml |
-| Telegram "terminated by other getUpdates" | Stop extra daemons (only one per bot token) |
-| Channel unhealthy | Run `zeroclaw channel doctor`, verify credentials and permissions |
-| Config world-readable warning | Run `chmod 600 ~/.zeroclaw/config.toml` |
-| API authentication failed | Verify API key in config or environment variables |
-| Model not found | Run `zeroclaw models refresh` to update catalog |
-| High memory usage | Check autonomy settings, limit concurrent actions |
+| Provider requests fail | API key source, provider ID, `zeroclaw providers`, `zeroclaw models refresh --provider <id>` |
+| Channel connected but silent | Correct allowlist field, bot membership, callback reachability for webhook channels |
+| Config changes ignored | `zeroclaw config show`, workspace resolution, channel/daemon restart if needed |
+| Updates unclear | `zeroclaw update --instructions` and `zeroclaw --version` |
+| Runtime acting too freely | `[autonomy]` level, allowlists, `zeroclaw estop status` |
 
-## Logs
+## Log Capture
 
-- macOS/Windows: `~/.zeroclaw/logs/daemon.stdout.log`
-- Linux systemd: `journalctl --user -u zeroclaw.service -f`
-
-## Getting Help
-
-1. Run `zeroclaw doctor` for automated diagnostics
-2. Check logs for error messages
-3. Review config: `cat ~/.zeroclaw/config.toml`
-4. Full documentation: https://github.com/zeroclaw-labs/zeroclaw
-
+```bash
+RUST_LOG=info zeroclaw daemon 2>&1 | tee /tmp/zeroclaw.log
+rg -n "error|warn|channel|provider|estop" /tmp/zeroclaw.log
+```
